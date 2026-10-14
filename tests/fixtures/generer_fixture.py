@@ -20,7 +20,7 @@ Page 1/2
 MONTREUIL, le 5 Octobre 2026
 SAS EXEMPLE BTP
 1 RUE DE L'EXEMPLE
-77300 FONTAINEBLEAU
+75001 PARIS
 Objet : attestation de fourniture des déclarations sociales et paiement des
 cotisations et contributions sociales.
 CODE DE SÉCURITÉ
@@ -45,7 +45,7 @@ PAIEMENT DES COTISATIONS ET CONTRIBUTIONS
 Article L.243-15 du code de la Sécurité sociale 2/2
 SAS EXEMPLE BTP
 1 RUE DE L'EXEMPLE
-77300 FONTAINEBLEAU
+75001 PARIS
 En votre qualité d'employeur, la présente attestation vous est délivrée :
 - pour un effectif moyen mensuel de 20 salariés,
 - pour une masse salariale de 53575 euros,
@@ -60,7 +60,7 @@ Fait à : MONTREUIL
 le : 05/10/2026
 ÉTABLISSEMENTS CONCERNÉS NUMÉRO SIRET
 1 RUE DE L'EXEMPLE
-77300 FONTAINEBLEAU
+75001 PARIS
 12345678900012"""
 
 

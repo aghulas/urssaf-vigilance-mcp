@@ -12,13 +12,13 @@ def test_suivi_lecture(classeur_suivi):
     s = Suivi(classeur_suivi)
     assert s.ligne_entetes == 4
     lignes = s.lignes()
-    assert [l.entreprise for l in lignes] == ["REVALECO", "REVALECO", "REUX", "INCONNU SARL", "(non attribué)"]
+    assert [l.entreprise for l in lignes] == ["ALPHA DESAMIANTAGE", "ALPHA DESAMIANTAGE", "BETA RAVALEMENT", "GAMMA SARL", "(non attribué)"]
     assert lignes[0].echeance == date(2027, 2, 28)
     codes = s.codes_uniques()
     assert set(codes) == {"MOCKVALIDE00001", "MOCKPERIMEE0001", "MOCKINCONNU0001"}
     assert len(codes["MOCKVALIDE00001"]) == 2  # même code sur deux lots
     a_verifier = s.codes_uniques(seulement_a_verifier=True)
-    assert set(a_verifier) == {"MOCKVALIDE00001", "MOCKINCONNU0001"}  # REUX déjà « authentique »
+    assert set(a_verifier) == {"MOCKVALIDE00001", "MOCKINCONNU0001"}  # BETA RAVALEMENT déjà « authentique »
 
 
 def test_suivi_ecriture_conserve_historique(classeur_suivi):
@@ -72,7 +72,7 @@ async def test_outils_mcp_mock(env_mock, classeur_suivi, pdf_exemple):
 
     liste = server.suivi_lister()
     assert len(liste["lignes"]) == 5 and set(liste["codes_uniques"]) == {"MOCKVALIDE00001", "MOCKPERIMEE0001", "MOCKINCONNU0001"}
-    assert [p["entreprise"] for p in liste["perimees_au_tableau"]] == ["REUX"]
+    assert [p["entreprise"] for p in liste["perimees_au_tableau"]] == ["BETA RAVALEMENT"]
 
 
 async def test_suivi_verifier_simulation_puis_ecriture(env_mock, monkeypatch, classeur_suivi):
@@ -89,5 +89,23 @@ async def test_suivi_verifier_simulation_puis_ecriture(env_mock, monkeypatch, cl
     assert fait["verifies"] == 3 and fait["fichier_enregistre"]
     s = Suivi(classeur_suivi)
     assert not any(l.code_a_verifier for l in s.lignes() if l.code_securite)
-    reux = [l for l in s.lignes() if l.entreprise == "REUX"][0]
-    assert "PERIMEE selon l'Urssaf depuis le 30/09/2026" in reux.verification
+    beta = [l for l in s.lignes() if l.entreprise == "BETA RAVALEMENT"][0]
+    assert "PERIMEE selon l'Urssaf depuis le 30/09/2026" in beta.verification
+
+
+def test_modele_et_detection_de_feuille(tmp_path):
+    from urssaf_vigilance_mcp.suivi import creer_modele
+    from openpyxl import load_workbook
+
+    f = creer_modele(tmp_path / "modele.xlsx")
+    wb = load_workbook(f)
+    ws = wb.active
+    ws.append(["PC", "01 LOT", "ALPHA", "12345678900012", None, None, "OK", None, "MOCKVALIDE00001", None])
+    wb.save(f)
+    s = Suivi(f)  # feuille détectée automatiquement
+    assert s.ligne_entetes == 4 and len(s.lignes()) == 1 and s.lignes()[0].code_a_verifier
+    import pytest as _pt
+    with _pt.raises(FileExistsError):
+        creer_modele(f)
+    with _pt.raises(ValueError):
+        Suivi(f, "Inexistante")

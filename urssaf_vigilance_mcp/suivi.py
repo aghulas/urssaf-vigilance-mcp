@@ -1,11 +1,14 @@
-"""Lecture et mise à jour du tableau Excel « Suivi des attestations par entreprise ».
+"""Lecture et mise à jour du tableau Excel de suivi des attestations.
 
-Structure attendue (feuille « Suivi attestations ») :
-- lignes de titre/sous-titre, puis une ligne d'en-têtes (détectée automatiquement) ;
-- une ligne par (opération, lot, entreprise) ; les notas en bas de feuille sont ignorés
-  (colonne Lot ou Entreprise vide).
-Les colonnes sont repérées par leur en-tête (recherche insensible à la casse et aux retours
-à la ligne), pas par leur lettre, pour résister aux ajouts de colonnes.
+Structure attendue (voir `creer_modele` pour un classeur vierge conforme) :
+- éventuelles lignes de titre, puis une ligne d'en-têtes (détectée automatiquement dans les
+  10 premières lignes) contenant au moins « Entreprise », « Code de sécurité URSSAF » et
+  « Vérification URSSAF » ;
+- une ligne par (opération, lot, entreprise) ; les lignes sans Lot ou sans Entreprise (notes
+  de bas de tableau) sont ignorées.
+Les colonnes sont repérées par leur en-tête (insensible à la casse et aux retours à la ligne),
+pas par leur lettre, pour résister aux ajouts de colonnes. Si aucune feuille n'est indiquée,
+la première feuille qui contient ces en-têtes est utilisée.
 """
 
 from __future__ import annotations
@@ -18,7 +21,7 @@ from pathlib import Path
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
-FEUILLE_DEFAUT = "Suivi attestations"
+FEUILLE_DEFAUT = None
 
 # en-tête logique -> motifs acceptés (regex, insensible à la casse, sur l'en-tête sans retours à la ligne)
 COLONNES = {
@@ -78,14 +81,26 @@ def _date(v) -> date | None:
 
 
 class Suivi:
-    def __init__(self, fichier: str | Path, feuille: str = FEUILLE_DEFAUT):
+    def __init__(self, fichier: str | Path, feuille: str | None = FEUILLE_DEFAUT):
         self.fichier = Path(fichier)
         self.wb = load_workbook(self.fichier)
-        if feuille not in self.wb.sheetnames:
-            raise ValueError(f"Feuille {feuille!r} introuvable dans {self.fichier.name} ({self.wb.sheetnames})")
-        self.ws: Worksheet = self.wb[feuille]
         self.ligne_entetes = 0
-        self.colonnes = self._reperer_colonnes()
+        if feuille:
+            if feuille not in self.wb.sheetnames:
+                raise ValueError(f"Feuille {feuille!r} introuvable dans {self.fichier.name} ({self.wb.sheetnames})")
+            self.ws: Worksheet = self.wb[feuille]
+            self.colonnes = self._reperer_colonnes()
+        else:
+            erreur = None
+            for ws in self.wb.worksheets:
+                self.ws = ws
+                try:
+                    self.colonnes = self._reperer_colonnes()
+                    break
+                except ValueError as e:  # noqa: PERF203
+                    erreur = e
+            else:
+                raise ValueError(f"Aucune feuille de {self.fichier.name} ne contient les en-têtes attendus ({erreur})")
 
     def _reperer_colonnes(self) -> dict[str, int]:
         """Cherche la ligne d'en-têtes dans les 10 premières lignes (celle qui contient « Entreprise »)."""
@@ -184,3 +199,34 @@ def texte_resultat(res, controle=None, aujourdhui: date | None = None) -> str:
     if res.statut == "inconnue":
         return f"CODE INCONNU de l'Urssaf (verifie par API le {j}) - document suspect, a reclamer directement a l'entreprise"
     return f"Verification API Urssaf le {j} : {res.message}"
+
+
+ENTETES_MODELE = [
+    "Opération", "Lot", "Entreprise", "SIRET attendu", "URSSAF\ndate attestation", "URSSAF\néchéance",
+    "Statut", "Contact", "Code de sécurité\nURSSAF", "Vérification URSSAF",
+]
+
+
+def creer_modele(fichier: str | Path, feuille: str = "Suivi attestations") -> Path:
+    """Crée un classeur de suivi vierge, conforme à la structure attendue par `Suivi`."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Font
+
+    dest = Path(fichier)
+    if dest.exists():
+        raise FileExistsError(f"{dest} existe déjà")
+    wb = Workbook()
+    ws = wb.active
+    ws.title = feuille
+    ws["A1"] = "Suivi des attestations de vigilance URSSAF"
+    ws["A1"].font = Font(bold=True, size=14)
+    ws["A2"] = "Une ligne par entreprise et par lot ; le code de sécurité (15 caractères) figure sur l'attestation."
+    for i, h in enumerate(ENTETES_MODELE, start=1):
+        c = ws.cell(row=4, column=i, value=h)
+        c.font = Font(bold=True)
+        c.alignment = Alignment(wrap_text=True, vertical="center")
+    for col, w in zip("ABCDEFGHIJ", (14, 28, 30, 16, 14, 14, 22, 28, 20, 70)):
+        ws.column_dimensions[col].width = w
+    ws.freeze_panes = "A5"
+    wb.save(dest)
+    return dest

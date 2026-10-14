@@ -20,7 +20,7 @@ def classeur_suivi(tmp_path: Path) -> Path:
     wb = Workbook()
     ws = wb.active
     ws.title = "Suivi attestations"
-    ws["A1"] = "Suivi des attestations - Chantier test"
+    ws["A1"] = "Suivi des attestations - Opération test"
     ws["A2"] = "situation au 13/10/2026"
     entetes = [
         "Opération", "Lot", "Entreprise", "URSSAF\ndate attestation", "URSSAF\necheance reelle",
@@ -30,13 +30,13 @@ def classeur_suivi(tmp_path: Path) -> Path:
     for i, h in enumerate(entetes, start=1):
         ws.cell(row=4, column=i, value=h)
     lignes = [
-        ("DP", "01 DESAMIANTAGE", "REVALECO", datetime(2026, 10, 5), datetime(2027, 2, 28), "OK", "MOCKVALIDE00001",
+        ("DP", "01 DESAMIANTAGE", "ALPHA DESAMIANTAGE", datetime(2026, 10, 5), datetime(2027, 2, 28), "OK", "MOCKVALIDE00001",
          "Attestation du 05/10/2026 - SIRET 12345678900012 - code à vérifier sur urssaf.fr"),
-        ("PC", "01 DESAMIANTAGE", "REVALECO", datetime(2026, 10, 5), datetime(2027, 2, 28), "OK", "MOCKVALIDE00001",
+        ("PC", "01 DESAMIANTAGE", "ALPHA DESAMIANTAGE", datetime(2026, 10, 5), datetime(2027, 2, 28), "OK", "MOCKVALIDE00001",
          "Attestation du 05/10/2026 - SIRET 12345678900012 - code à vérifier sur urssaf.fr"),
-        ("PC", "02 RAVALEMENT", "REUX", datetime(2026, 5, 12), datetime(2026, 9, 30), "PÉRIMÉE", "MOCKPERIMEE0001",
+        ("PC", "02 RAVALEMENT", "BETA RAVALEMENT", datetime(2026, 5, 12), datetime(2026, 9, 30), "PÉRIMÉE", "MOCKPERIMEE0001",
          "Authentique et valide - SIRET 90645051500059"),
-        ("PC", "03 CHARPENTE", "INCONNU SARL", datetime(2026, 7, 1), datetime(2026, 12, 31), "OK", "MOCKINCONNU0001", None),
+        ("PC", "03 CHARPENTE", "GAMMA SARL", datetime(2026, 7, 1), datetime(2026, 12, 31), "OK", "MOCKINCONNU0001", None),
         ("PC", "13 ASCENSEUR", "(non attribué)", None, None, "URSSAF manquante", None, None),
     ]
     for r, (op, lot, ent, d_att, ech, statut, code, verif) in enumerate(lignes, start=5):

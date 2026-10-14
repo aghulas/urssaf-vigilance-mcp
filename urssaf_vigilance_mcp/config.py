@@ -21,6 +21,7 @@ class Settings:
     mock: bool = False
     domaine_defaut: str = "URSSAF"  # "URSSAF" | "ISU"
     fichier_suivi: Path | None = None
+    feuille_suivi: str | None = None  # None = première feuille contenant les en-têtes
     timeout: float = 30.0
     hote: str = field(init=False)
 
@@ -49,5 +50,6 @@ class Settings:
             mock=os.environ.get("URSSAF_MOCK", "").strip() in ("1", "true", "oui"),
             domaine_defaut=os.environ.get("URSSAF_DOMAINE", "URSSAF").upper(),
             fichier_suivi=Path(suivi).expanduser() if suivi else None,
+            feuille_suivi=os.environ.get("URSSAF_FEUILLE_SUIVI") or None,
             timeout=float(os.environ.get("URSSAF_TIMEOUT", "30")),
         )

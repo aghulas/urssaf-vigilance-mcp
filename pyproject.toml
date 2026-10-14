@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "urssaf-vigilance-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Serveur MCP : vérification des attestations de vigilance Urssaf (API Attestations Vérification Code Sécurité) et suivi des fournisseurs"
 readme = "README.md"
 requires-python = ">=3.11"

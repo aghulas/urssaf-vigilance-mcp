@@ -32,7 +32,7 @@ def _api_exemple(**kw) -> ResultatVerification:
     base = dict(
         code_securite="MOCKVALIDE00001", statut="valide", nature="AVG_UR", est_attestation_vigilance=True,
         denomination="EXEMPLE BTP", organisme_emetteur="URSSAF ILE DE FRANCE", date_certification="05/10/2026",
-        etablissements=[Etablissement("12345678900012", "1 RUE DE L'EXEMPLE 77300 FONTAINEBLEAU")],
+        etablissements=[Etablissement("12345678900012", "1 RUE DE L'EXEMPLE 75001 PARIS")],
         derniere_periode_analysee="mois de août 2026", masse_salariale="53575.0", effectif="20",
     )
     base.update(kw)

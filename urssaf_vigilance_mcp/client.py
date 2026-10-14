@@ -226,7 +226,7 @@ MOCK_VALIDES: dict[str, dict] = {
                 "infosSecurisationSpecifiquesAVG": {
                     "siren": "123456789",
                     "nir": None,
-                    "etablissement": [{"adresse": "1 RUE DE L'EXEMPLE 77300 FONTAINEBLEAU", "siret": "12345678900012"}],
+                    "etablissement": [{"adresse": "1 RUE DE L'EXEMPLE 75001 PARIS", "siret": "12345678900012"}],
                     "dernierePeriodeAnalysee": "mois de août 2026",
                     "masseSalariale": "53575.0",
                     "effectif": "20",

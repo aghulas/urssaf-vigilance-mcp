@@ -6,10 +6,12 @@ Outils :
 - lire_attestation_pdf(fichier)                  : données du PDF (code, SIREN, SIRET, période, effectif…)
 - controler_attestation(fichier, siret_attendu…) : PDF + API + cohérence + fin de validité
 - suivi_lister(fichier)                          : lignes du tableau Excel de suivi
+- suivi_creer_modele(fichier)                    : classeur de suivi vierge
 - suivi_verifier(fichier, tous, ecrire)          : vérifie les codes du tableau et (option) écrit les résultats
 
 Variables d'environnement : URSSAF_CLIENT_ID, URSSAF_CLIENT_SECRET, URSSAF_ENV (sandbox|production),
 URSSAF_MOCK=1 (simulation sans réseau), URSSAF_DOMAINE (URSSAF|ISU), URSSAF_FICHIER_SUIVI (xlsx par défaut),
+URSSAF_FEUILLE_SUIVI (nom de la feuille, sinon détection automatique),
 URSSAF_ECRITURE=1 (autorise la mise à jour du fichier Excel).
 """
 
@@ -31,7 +33,7 @@ from .config import Settings
 from .controle import controler
 from .modeles import VALIDE
 from .pdf import lire_attestation
-from .suivi import Suivi, texte_resultat
+from .suivi import Suivi, creer_modele, texte_resultat
 
 mcp = _Server(
     "urssaf-vigilance",
@@ -164,7 +166,7 @@ def suivi_lister(fichier: str | None = None, seulement_a_verifier: bool = False)
     codes uniques. `seulement_a_verifier` ne garde que les codes dont la vérification n'est pas tracée.
     """
     try:
-        s = Suivi(_fichier_suivi(fichier))
+        s = Suivi(_fichier_suivi(fichier), settings().feuille_suivi)
         lignes = s.lignes()
         if seulement_a_verifier:
             lignes = [l for l in lignes if l.code_a_verifier]
@@ -191,7 +193,7 @@ async def suivi_verifier(fichier: str | None = None, tous: bool = False, ecrire:
     """
     try:
         p = _fichier_suivi(fichier)
-        s = Suivi(p)
+        s = Suivi(p, settings().feuille_suivi)
         par_code = s.codes_uniques(seulement_a_verifier=not tous)
         if not par_code:
             return {"fichier": str(p), "message": "Aucun code à vérifier", "resultats": []}
@@ -229,6 +231,17 @@ async def suivi_verifier(fichier: str | None = None, tous: bool = False, ecrire:
 
 
 @mcp.tool()
+def suivi_creer_modele(fichier: str) -> dict:
+    """Crée un classeur Excel de suivi vierge (colonnes Opération, Lot, Entreprise, SIRET attendu, dates,
+    statut, contact, code de sécurité, vérification) à l'emplacement indiqué. Refuse d'écraser un fichier existant.
+    """
+    try:
+        return {"fichier": str(creer_modele(Path(fichier).expanduser()))}
+    except Exception as e:  # noqa: BLE001
+        return _erreur(e)
+
+
+@mcp.tool()
 def etat_connecteur() -> dict:
     """Configuration courante (sans secrets) : environnement, mode mock, fichier de suivi, écriture, version."""
     st = settings()
@@ -240,6 +253,7 @@ def etat_connecteur() -> dict:
         "identifiants_presents": bool(st.client_id and st.client_secret),
         "domaine_defaut": st.domaine_defaut,
         "fichier_suivi": str(st.fichier_suivi) if st.fichier_suivi else None,
+        "feuille_suivi": st.feuille_suivi,
         "ecriture_excel": _ecriture_autorisee(),
     }
 
