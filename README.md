@@ -87,3 +87,9 @@ sur chaque ligne. L'historique de la colonne Vérification est conservé (le tex
 Usage réservé à la vérification d'attestations ; ne pas détourner l'API pour obtenir des informations sur
 des comptes cotisants ; confidentialité des identifiants et des données retournées ; signalement de toute
 faille sous 48 h à `contact.api@urssaf.fr`. Repli manuel en cas d'indisponibilité : l'outil web urssaf.fr.
+
+## Skills
+
+Le dossier `skills/` contient la source des skills Claude associées au connecteur :
+
+- `urssaf-verifier-attestation-vigilance` — procédure complète pour une attestation reçue (contrôle avec le SIRET du devis, règle des 6 mois, tableau de suivi, archivage) et revue périodique du tableau.
